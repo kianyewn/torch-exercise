@@ -2,6 +2,13 @@ import pytest
 import torch
 
 
+def create_gates():
+    scores = torch.rand(3, 5)
+    scores_mean = scores.mean(dim=1, keepdims=True)
+    gates = torch.where(scores < scores_mean, 0, scores)
+    return gates
+
+
 @pytest.fixture
 def gates():
     return torch.tensor(
