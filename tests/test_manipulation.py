@@ -75,8 +75,12 @@ def test_bincounts_ignore_sequence():
     x2 = x - x.min()
     x2_unique = torch.unique(x2)
     counts = torch.bincount(x2)
-    assert torch.allclose(counts, torch.tensor([3, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1]))
-    assert torch.all(counts[x2_unique] == torch.tensor([3, 2, 2, 1, 1]))
+    assert torch.allclose(
+        counts, torch.tensor([3, 2, 2, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1])
+    )  # notice bincounts iaccording to in torch.arange()
+    assert torch.all(
+        counts[x2_unique] == torch.tensor([3, 2, 2, 1, 1])
+    )  # notice that these are the counts that we care about only
 
 
 def test_get_values_that_are_not_zero_according_to_column_indices():
