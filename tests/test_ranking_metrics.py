@@ -44,7 +44,9 @@ def test_recall_at_k():
 
 def test_ndcg_raw():
     rel = torch.tensor([3, 2, 3, 0, 1, 2])
-    pred = torch.arange(len(rel))
+    pred = torch.arange(len(rel)).sort(descending=True)[
+        0
+    ]  # when calculating ndcg, the preds should be sorted in descending order
     cg = torch.sum(rel)
     assert cg == 11
 
@@ -66,9 +68,7 @@ def test_ndcg_raw():
     ndcg = dcg / idcg
     assert torch.allclose(ndcg, torch.tensor(0.9608), atol=1e-6)
 
-    torch_ndcg = retrieval_normalized_dcg(
-        target=rel, preds=pred.float().sort(descending=True)[0], top_k=6
-    )
+    torch_ndcg = retrieval_normalized_dcg(target=rel, preds=pred.float(), top_k=6)
     assert torch.allclose(torch_ndcg, torch.tensor(0.9608), atol=1e-6)
 
 
