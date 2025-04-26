@@ -1,7 +1,9 @@
 import numpy as np
 import torch
-import torch.nn as nn
-from torchmetrics.functional.retrieval import retrieval_normalized_dcg
+from torchmetrics.functional.retrieval import (
+    retrieval_normalized_dcg,
+    retrieval_precision,
+)
 from torchmetrics.retrieval import RetrievalPrecision, RetrievalRecall
 
 
@@ -133,3 +135,28 @@ def test_ndcg_at_k():
         retrieval_normalized_dcg(target=rel, preds=pred, top_k=k) for k in range(1, 7)
     ]
     assert np.allclose(actual_ndcgs, expected_ndcgs)
+
+
+def test_precision_with_indexes():
+    indexes = torch.randint(0, 10, (100,))
+    preds = torch.randn(100)
+    labels = torch.randint(0, 2, (100,))
+
+    indexes, indices = torch.sort(indexes)
+    preds = preds[indices]
+    labels = labels[indices]
+
+    counts = torch.bincount(indexes)
+
+    metrics = []
+    for mini_preds, mini_labels in zip(
+        torch.split(preds, counts.tolist(), dim=0),
+        torch.split(labels, counts.tolist(), dim=0),
+    ):
+        ndcg = retrieval_precision(mini_preds, mini_labels, top_k=5)
+        metrics.append(ndcg)
+
+    rp5 = RetrievalPrecision(top_k=5)
+    assert torch.allclose(
+        torch.mean(torch.stack(metrics)), rp5(preds, labels, indexes=indexes)
+    )
