@@ -1,6 +1,15 @@
 import torch
 
 
+def multiply_tuple():
+    """Multiplying a tuple by a scaler expands the tuple"""
+    expanded = (0, 0) * 4
+    assert expanded == (0, 0, 0, 0, 0, 0, 0, 0)
+
+    expanded_tensor = torch.tensor([0, 0]) * 4
+    assert torch.allclose(expanded_tensor, torch.tensor[0, 0])
+
+
 def test_alternate_sign():
     x1 = torch.arange(0, 12).reshape(2, 6)
     x1 = x1.reshape(2, 3, 2)
@@ -144,4 +153,33 @@ def test_sort_non_zero_value_column_indexes():
     assert torch.allclose(
         reordered_non_zero_according_to_non_zero_values,
         torch.tensor([[2, 0], [2, 1], [1, 1], [1, 2], [0, 2], [0, 4], [2, 4]]),
+    )
+
+
+def test_unfold_for_sequence():
+    timestep = 2
+    emb = torch.arange(2 * 2 * 3).reshape(2 * 2, 3)  # (B, D)
+    assert torch.allclose(
+        emb, torch.tensor([[0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]])
+    )
+
+    emb_padded = torch.nn.functional.pad(emb, (0, 0, timestep - 1, 0))
+    assert torch.allclose(
+        emb_padded,
+        torch.tensor([[0, 0, 0], [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]]),
+    )
+
+    unfold = emb_padded.unfold(dimension=0, size=timestep, step=1).transpose(
+        -2, -1
+    )  # (B, timestep, D)
+    assert torch.allclose(
+        unfold,
+        torch.tensor(
+            [
+                [[0, 0, 0], [0, 1, 2]],
+                [[0, 1, 2], [3, 4, 5]],
+                [[3, 4, 5], [6, 7, 8]],
+                [[6, 7, 8], [9, 10, 11]],
+            ]
+        ),
     )

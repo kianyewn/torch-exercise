@@ -138,7 +138,7 @@ def test_ndcg_at_k():
 
 
 def test_precision_with_indexes():
-    indexes = torch.randint(0, 10, (100,))
+    indexes = torch.randint(2, 10, (100,))
     preds = torch.randn(100)
     labels = torch.randint(0, 2, (100,))
 
@@ -147,6 +147,9 @@ def test_precision_with_indexes():
     labels = labels[indices]
 
     counts = torch.bincount(indexes)
+    counts = counts[
+        counts != 0
+    ]  # ignore the 0 counts, works since indexes are already sorted.
 
     metrics = []
     for mini_preds, mini_labels in zip(
