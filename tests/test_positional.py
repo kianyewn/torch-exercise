@@ -1,5 +1,6 @@
 import math
 
+import numpy as np
 import torch
 
 
@@ -13,8 +14,12 @@ def test_positional_encoding():
 
     denom = torch.exp(half_dim / dim * -torch.log(torch.tensor(10000.0)))  # (2i,)
 
-    positional_encoding[:, half_dim] = torch.sin(positions.unsqueeze(-1) * denom)
-    positional_encoding[:, half_dim + 1] = torch.cos(positions.unsqueeze(-1) * denom)
+    positional_encoding[:, half_dim] = torch.sin(
+        positions.unsqueeze(-1) * denom
+    )  # every even dimension is a sine
+    positional_encoding[:, half_dim + 1] = torch.cos(
+        positions.unsqueeze(-1) * denom
+    )  # every odd dimension is a cosine
 
     max_len = max_seq_len
     d_model = dim
@@ -28,3 +33,14 @@ def test_positional_encoding():
 
     assert torch.allclose(positional_encoding, pe, atol=1e-5)
 
+
+def plot(pe):
+    """Inspect even dims and odd dimensions along the positions"""
+    import matplotlib.pyplot as plt
+
+    pes = pe.numpy()
+    fig, ax = plt.subplots(figsize=(20, 10))
+    ax.plot(
+        np.arange(pes.shape[0]), pe[:, 4:8], label=[f"dim_{i}" for i in [4, 5, 6, 7]]
+    )
+    return fig
